@@ -38,3 +38,6 @@ docker-compose.override.yml
 /docker-compose.yml
 /server/Dockerfile
 /scraper/Dockerfile
+
+README.md
+.env.example
