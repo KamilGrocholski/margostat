@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  server:
+    image: golang:latest
+    volumes:
+      - ./server:/go/src/app
+      - ./static:/app/static
+    ports:
+      - "8080:8080"
+    env_file: 
+      - .env
+    command: go run /go/src/app/main.go
+
+  scraper:
+    build: ./scraper
+    image: golang:latest
+    volumes:
+      - ./scraper:/go/src/app
+      - ./static:/app/static
+    depends_on:
+      - postgres
+    env_file: 
+      - .env
+    command: "go run /go/src/app/main.go"
+
+  postgres:
+    image: postgres:latest
+    command: >
+        -c ssl=on 
+        -c ssl_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+        -c ssl_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+    env_file: 
+      - .env
+    volumes:
+      - scraper_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  scraper_postgres_data:

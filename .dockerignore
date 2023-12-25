@@ -1,0 +1,40 @@
+# Ignore build context files
+.docker/
+.dockerignore
+
+# Ignore build artifacts and temporary files
+*.log
+*.tmp
+/tmp/
+
+# Ignore version control directories
+.git/
+.svn/
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test and coverage files
+*.test
+*.out
+
+# Go specific files
+/go.sum
+/go.mod
+/logger/
+/server/server.log
+/scraper/scraper.log
+
+# System and IDE files
+.DS_Store
+.idea/
+
+# Docker specific files
+/.docker/
+docker-compose.override.yml
+/docker-compose.yml
+/server/Dockerfile
+/scraper/Dockerfile
