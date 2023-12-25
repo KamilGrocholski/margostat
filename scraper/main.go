@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"strconv"
@@ -25,6 +26,15 @@ func main() {
 		logger.Logger.Fatalf("parsing max attempts env, %v", err)
 	}
 
+	db, err := database.Connect()
+	if err != nil {
+		logger.Logger.Printf("failed connecting to db, %v", err)
+	}
+	defer db.Close()
+	if err := database.Init(db); err != nil {
+		logger.Logger.Printf("failed init on db, %v", err)
+	}
+
 	c := cron.New()
 
 	cronSpec := fmt.Sprintf("*/%d * * * *", scraperIntervalInMinutes)
@@ -33,7 +43,7 @@ func main() {
 		logger.Logger.Printf("Start scraping")
 
 		for attempt := 1; attempt <= int(scraperMaxAttempts); attempt++ {
-			err := scrap()
+			err := scrap(db)
 			if err == nil {
 				logger.Logger.Printf("Success scraping (attempt %d): %v\n", attempt, err)
 				break
@@ -42,6 +52,8 @@ func main() {
 			logger.Logger.Printf("Error scraping (attempt %d): %v\n", attempt, err)
 			time.Sleep(time.Duration(attempt) * time.Second)
 		}
+
+		revalidate(db)
 	})
 
 	c.Start()
@@ -49,16 +61,7 @@ func main() {
 	select {}
 }
 
-func scrap() error {
-	db, err := database.Connect()
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-	if err := database.Init(db); err != nil {
-		return err
-	}
-
+func scrap(db *sql.DB) error {
 	counters, counterErr := margonem.CountMultipleWorldsInfoOnline(margonem.MARGONEM_WORLD_NAMES)
 	if counterErr != nil {
 		return counterErr
@@ -69,6 +72,10 @@ func scrap() error {
 		return insertErr
 	}
 
+	return nil
+}
+
+func revalidate(db *sql.DB) error {
 	worlds, err := database.GetAllWorldNames(db)
 	if err != nil {
 		return err
@@ -85,13 +92,13 @@ func scrap() error {
 	}
 	allGenErr := ssg.GenerateAndWriteHtmlPageFileToStatic("index", &allWorldsPageData)
 	if allGenErr != nil {
-		return allGenErr
+		logger.Logger.Printf("index not generated %v", allGenErr)
 	}
 
 	for _, w := range worlds {
 		timeline, err := database.GetWorldTimeline(db, w)
 		if err != nil {
-			return err
+			logger.Logger.Fatalf("world %s not timeline, %v", w, err)
 		}
 		data := ssg.WorldPageData{
 			SelectedWorld: w,
@@ -100,7 +107,7 @@ func scrap() error {
 		}
 		genErr := ssg.GenerateAndWriteHtmlPageFileToStatic(w, &data)
 		if genErr != nil {
-			return genErr
+			logger.Logger.Printf("world %s not generated %v", w, genErr)
 		}
 	}
 
