@@ -22,8 +22,8 @@ func Init(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS counter (
 			id BIGSERIAL PRIMARY KEY,
 			count INT NOT NULL,
-			world_id SERIAL NOT NULL,
-			counter_timestamp_id BIGSERIAL NOT NULL,
+			world_id INT NOT NULL,
+			counter_timestamp_id BIGINT NOT NULL,
 			CONSTRAINT fk_counter_timestamp FOREIGN KEY (counter_timestamp_id) REFERENCES counter_timestamp(id),
 			CONSTRAINT fk_world FOREIGN KEY (world_id) REFERENCES world(id)
 		);

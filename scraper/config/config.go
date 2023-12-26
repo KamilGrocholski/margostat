@@ -34,7 +34,7 @@ func getStringEnv(name string) string {
 func getInt64Env(name string) int64 {
 	raw := getStringEnv(name)
 
-	parsed, err := strconv.ParseInt(raw, 10, 32)
+	parsed, err := strconv.ParseInt(raw, 10, 64)
 	if err != nil {
 		log.Fatalf("Env %s is not int64", name)
 	}
