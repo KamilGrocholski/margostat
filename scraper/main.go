@@ -3,12 +3,11 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/robfig/cron/v3"
 
+	"scraper/config"
 	"scraper/database"
 	"scraper/logger"
 	"scraper/margonem"
@@ -16,33 +15,33 @@ import (
 )
 
 func main() {
-	scraperIntervalInMinutes, err := strconv.ParseInt(os.Getenv("SCRAPER_INTERVAL_IN_MINUTES"), 10, 32)
-	if err != nil {
-		logger.Logger.Fatalf("parsing interval env, %v", err)
-	}
-
-	scraperMaxAttempts, err := strconv.ParseInt(os.Getenv("SCRAPER_MAX_ATTEMPTS"), 10, 32)
-	if err != nil {
-		logger.Logger.Fatalf("parsing max attempts env, %v", err)
-	}
-
-	db, err := database.Connect()
-	if err != nil {
-		logger.Logger.Printf("failed connecting to db, %v", err)
-	}
-	defer db.Close()
-	if err := database.Init(db); err != nil {
-		logger.Logger.Printf("failed init on db, %v", err)
-	}
+	logger.Init()
+	config.Init()
 
 	c := cron.New()
 
-	cronSpec := fmt.Sprintf("*/%d * * * *", scraperIntervalInMinutes)
+	cronSpec := fmt.Sprintf("*/%d * * * *", config.SCRAPER_INTERVAL_IN_MINUTES)
+
 	c.AddFunc(cronSpec, func() {
-		logger.Init()
+		db, err := database.Connect()
+		if err != nil {
+			logger.Logger.Fatalf("Failed connecting to db, %v", err)
+		}
+		defer func() {
+			err := db.Close()
+			if err != nil {
+				logger.Logger.Printf("Error while closing db connection, %v", err)
+			} else {
+				logger.Logger.Print("Closed db connection")
+			}
+		}()
+		if err := database.Init(db); err != nil {
+			logger.Logger.Fatalf("Failed init on db, %v", err)
+		}
+
 		logger.Logger.Printf("Start scraping")
 
-		for attempt := 1; attempt <= int(scraperMaxAttempts); attempt++ {
+		for attempt := 1; attempt <= int(config.SCRAPER_MAX_ATTEMPTS); attempt++ {
 			err := scrap(db)
 			if err == nil {
 				logger.Logger.Printf("Success scraping (attempt %d): %v\n", attempt, err)
@@ -89,27 +88,35 @@ func revalidate(db *sql.DB) error {
 		SelectedWorld: margonem.MARGONEM_GLOBAL_NAME,
 		Worlds:        worlds,
 		CountResults:  allWorldsTimeline,
+		GeneratedAt:   time.Now(),
 	}
 	allGenErr := ssg.GenerateAndWriteHtmlPageFileToStatic("index", &allWorldsPageData)
 	if allGenErr != nil {
-		logger.Logger.Printf("index not generated %v", allGenErr)
+		logger.Logger.Printf("Failed index page generation %v", allGenErr)
 	}
+
+	worldsGeneratedCount := 0
 
 	for _, w := range worlds {
 		timeline, err := database.GetWorldTimeline(db, w)
 		if err != nil {
-			logger.Logger.Fatalf("world %s not timeline, %v", w, err)
+			logger.Logger.Fatalf("error getting timeline for world %s, %v", w, err)
 		}
 		data := ssg.WorldPageData{
 			SelectedWorld: w,
 			CountResults:  timeline,
 			Worlds:        worlds,
+			GeneratedAt:   time.Now(),
 		}
 		genErr := ssg.GenerateAndWriteHtmlPageFileToStatic(w, &data)
 		if genErr != nil {
-			logger.Logger.Printf("world %s not generated %v", w, genErr)
+			logger.Logger.Printf("Failed world %s page generation %v", w, genErr)
+		} else {
+			worldsGeneratedCount++
 		}
 	}
+
+	logger.Logger.Printf("Generated %d/%d worlds", worldsGeneratedCount, len(worlds))
 
 	return nil
 }

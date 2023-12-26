@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 	"text/template"
+	"time"
 
+	"scraper/config"
 	"scraper/database"
 )
 
@@ -12,6 +14,7 @@ type WorldPageData struct {
 	Worlds        []string
 	SelectedWorld string
 	CountResults  []database.CountResult
+	GeneratedAt   time.Time
 }
 
 const (
@@ -19,11 +22,7 @@ const (
 )
 
 func ComposePathToStaticFile(name string, ext string) string {
-	staticDirPath, ok := os.LookupEnv("STATIC_DIR_PATH")
-	if ok == false {
-		panic("no STATIC_DIR_PATH env")
-	}
-	return fmt.Sprintf("%s/%s.%s", staticDirPath, name, ext)
+	return fmt.Sprintf("%s/%s.%s", config.STATIC_DIR_PATH, name, ext)
 }
 
 func ComposePathToTemplateFile(name string, ext string) string {
@@ -50,6 +49,5 @@ func GenerateAndWriteHtmlPageFileToStatic(filename string, data *WorldPageData) 
 		return fmt.Errorf("error executing HTML template: %v", err)
 	}
 
-	fmt.Printf("HTML content written to the file at: %s\n", destPath)
 	return nil
 }

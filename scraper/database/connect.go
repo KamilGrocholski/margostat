@@ -3,28 +3,19 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"os"
-	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
+
+	"scraper/config"
 )
 
 func Connect() (*sql.DB, error) {
-	maxAttempts, parseErr := strconv.ParseInt(os.Getenv("SCRAPER_DB_CONNECTION_MAX_ATTEMPTS"), 10, 32)
-	if parseErr != nil {
-		return nil, parseErr
-	}
-	dbURL := os.Getenv("DATABASE_URL")
-	if len(dbURL) == 0 {
-		panic("dbURL length is 0")
-	}
-
 	var db *sql.DB
 	var err error
 
-	for attempt := 1; attempt <= int(maxAttempts); attempt++ {
-		db, err = sql.Open("postgres", dbURL)
+	for attempt := 1; attempt <= int(config.SCRAPER_DB_CONNECTION_MAX_ATTEMPTS); attempt++ {
+		db, err = sql.Open("postgres", config.DATABASE_URL)
 		if err == nil {
 			break
 		}

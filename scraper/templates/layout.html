@@ -4,7 +4,7 @@
     <title>Margostat</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="generated_at" content="{{.GeneratedAt}}">
     <style>
         * {
             -webkit-box-sizing: border-box;
@@ -178,10 +178,15 @@
         return dateFormatter.format(new Date(str))
     }
 
+    const labels = [{{range .CountResults}}"{{.Timestamp}}",{{end}}]
+    for (let i = 0; i < labels.length; ++i) {
+        labels[i] = formatDateFromStr(labels[i])
+    }
+
 	new Chart(document.getElementById("line-chart"), {
 		type : 'line',
 		data : {
-            labels : [{{range .CountResults}}formatDateFromStr("{{.Timestamp}}"),{{end}}],
+            labels,
 			datasets : [
 					{
                         data : [{{range .CountResults}}{{.Count}},{{end}}],
