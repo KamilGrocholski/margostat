@@ -86,8 +86,8 @@ func revalidate(db *sql.DB) error {
 	}
 	allWorldsPageData := ssg.WorldPageData{
 		SelectedWorld: margonem.MARGONEM_GLOBAL_NAME,
-		Worlds:        worlds,
-		CountResults:  allWorldsTimeline,
+		Worlds:        &worlds,
+		CountResults:  &allWorldsTimeline,
 		GeneratedAt:   time.Now(),
 	}
 	allGenErr := ssg.GenerateAndWriteHtmlPageFileToStatic("index", &allWorldsPageData)
@@ -104,8 +104,8 @@ func revalidate(db *sql.DB) error {
 		}
 		data := ssg.WorldPageData{
 			SelectedWorld: w,
-			CountResults:  timeline,
-			Worlds:        worlds,
+			CountResults:  &timeline,
+			Worlds:        &worlds,
 			GeneratedAt:   time.Now(),
 		}
 		genErr := ssg.GenerateAndWriteHtmlPageFileToStatic(w, &data)

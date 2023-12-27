@@ -11,9 +11,9 @@ import (
 )
 
 type WorldPageData struct {
-	Worlds        []string
+	Worlds        *[]string
 	SelectedWorld string
-	CountResults  []database.CountResult
+	CountResults  *[]database.CountResult
 	GeneratedAt   time.Time
 }
 

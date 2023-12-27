@@ -58,6 +58,7 @@ func countWorldInfoOnline(world string) (int, error) {
 	apiUrl := composeUrlToWorldInfoOnline(world)
 	res, err := http.Get(apiUrl)
 	if err != nil {
+		fmt.Printf("FATAL TOTAL ERROR: Error api margonem, %v", err)
 		return 0, err
 	}
 	defer res.Body.Close()
