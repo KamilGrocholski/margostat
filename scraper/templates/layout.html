@@ -5,8 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generated_at" content="{{.GeneratedAt}}">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
-        * {
+        *, 
+        ::after,
+        ::before {
             -webkit-box-sizing: border-box;
             box-sizing: border-box;
         }
@@ -16,6 +19,10 @@
             font-size: 1.2rem;
         }
 
+        .logo:hover {
+           color: white; 
+        }
+
         .selected-world {
             text-align: center;
         }
@@ -23,6 +30,18 @@
         a {
           color: inherit;
           text-decoration: inherit; 
+        }
+
+        .link[href="{{.SelectedWorld}}"] {
+            color: #3cba9f;
+        }
+
+        .link[href="{{.SelectedWorld}}"]::after {
+            content: " *";
+        }
+
+        .link:hover {
+            color: white;
         }
 
         ul {
@@ -113,6 +132,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.3rem;
+            background-color: #222;
+            min-width: 12rem;
         }
 
         .dropdown {
@@ -126,12 +147,24 @@
           background-color: #222;
           min-width: 160px;
           box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-          padding: 12px 16px;
+          padding: 1rem 1rem;
           z-index: 1;
         }
 
         .dropdown:hover .dropdown-content {
           display: block;
+        }
+
+        .chart-container {
+            height: 70vh;
+        }
+
+        .apexcharts-zoom-icon.apexcharts-selected svg {
+          fill: #3cba9f !important;
+        }
+
+        .apexcharts-pan-icon.apexcharts-selected svg {
+          stroke: #3cba9f !important;
         }
     </style>
 </head>
@@ -145,7 +178,7 @@
               <div class="dropdown-content">
                 <ul class="world-links">
                     {{range $world := .Worlds}}
-                    <li><a href="{{$world}}" class="capitalize">{{$world}}</a></li>
+                    <li><a href="{{$world}}" class="link capitalize">{{$world}}</a></li>
                     {{end}}
                 </ul>
               </div>
@@ -153,18 +186,15 @@
         </div>
     </header>
     <main class="container">
-        <section>
+        <section class='main-section'>
             <h1 class="capitalize selected-world">{{.SelectedWorld}}</h1>
 
-            <div>
-                <canvas id="line-chart"></canvas>
+            <div class='chart-container'>
+                <div id="timeline-chart"></div>
             </div>
         </section>
     </main>
     <footer>Margostat</footer>
-
-<script
-    src="https://cdn.jsdelivr.net/npm/chart.js@4.0.1/dist/chart.umd.min.js"></script>
 <script>
     const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
         year: 'numeric',
@@ -178,35 +208,53 @@
         return dateFormatter.format(new Date(str))
     }
 
-    const labels = [{{range .CountResults}}"{{.Timestamp}}",{{end}}]
-    for (let i = 0; i < labels.length; ++i) {
-        labels[i] = formatDateFromStr(labels[i])
+    const data = [{{range .CountResults}}{x:"{{.Timestamp}}",y:{{.Count}}},{{end}}]
+
+    for (let i = 0; i < data.length; ++i) {
+        data[i].x = formatDateFromStr(data[i].x)
     }
 
-	new Chart(document.getElementById("line-chart"), {
-		type : 'line',
-		data : {
-            labels,
-			datasets : [
-					{
-                        data : [{{range .CountResults}}{{.Count}},{{end}}],
-						label : "Gracze online",
-						borderColor : "#3cba9f",
-						fill : true
-					}]
-		},
-		options : {
-            scales: {
-                x: {
-                  ticks: {
-                    display: true,
-                    autoSkip: true,
-                    maxTicksLimit: 16,
-                  },
-                },
+    const chartData = {
+        series: [{
+            name: 'Postacie online',
+            data
+        }],
+        chart: {
+            height: "100%",
+            type: 'line',
+            zoom: {
+                enabled: true,
+            },
+        },
+    };
+
+    const chartOptions = {
+        colors: ["#3cba9f"],
+        stroke: {
+            colors: ["#3cba9f"]
+        },
+        chart: {
+            width: '100%',
+            toolbar: {
+                show: true,
             }
-		}
-	});
+        },
+        responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: {
+                    width: '100%',
+                }
+            }
+        }]
+    };
+
+    const chart = new ApexCharts(document.querySelector("#timeline-chart"), {
+        ...chartOptions,
+        ...chartData
+    });
+
+    chart.render();
 </script>
 
 </body>
