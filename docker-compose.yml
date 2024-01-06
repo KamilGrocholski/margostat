@@ -7,7 +7,7 @@ services:
       - ./server:/go/src/app
       - ./static:/app/static
     ports:
-      - "8080:8080"
+      - "${SERVER_PORT}:8080"
     env_file: 
       - .env
     command: go run /go/src/app/main.go
