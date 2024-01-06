@@ -1,7 +1,6 @@
 package margonem
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
