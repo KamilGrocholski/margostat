@@ -61,7 +61,7 @@ func main() {
 }
 
 func scrap(db *sql.DB) error {
-	counters, counterErr := margonem.CountMultipleWorldsInfoOnline(margonem.MARGONEM_WORLD_NAMES)
+	counters, counterErr := margonem.CountMultipleWorldsInfoOnline()
 	if counterErr != nil {
 		return counterErr
 	}

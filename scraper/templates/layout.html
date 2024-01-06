@@ -7,33 +7,69 @@
     <meta name="generated_at" content="{{.GeneratedAt}}">
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
-        *, 
-        ::after,
-        ::before {
-            -webkit-box-sizing: border-box;
-            box-sizing: border-box;
+        :root {
+          --color-scheme: var(--dark-mode);
+
+          --font-family: system-ui;
+
+          --fs-300: clamp(0.94rem, calc(0.92rem + 0.08vw), 0.98rem);
+          --fs-400: clamp(1.13rem, calc(1.06rem + 0.33vw), 1.31rem);
+          --fs-500: clamp(1.35rem, calc(1.21rem + 0.69vw), 1.75rem);
+          --fs-600: clamp(1.62rem, calc(1.37rem + 1.24vw), 2.33rem);
+          --fs-700: clamp(1.94rem, calc(1.54rem + 2.03vw), 3.11rem);
+          --fs-800: clamp(2.33rem, calc(1.7rem + 3.15vw), 4.14rem);
+          --fs-900: clamp(2.8rem, calc(1.85rem + 4.74vw), 5.52rem);
+
+          --clr-primary: #3cba9f;
+
+          --no-dark-mode: light;
+          --dark-mode: dark light;
         }
 
-        .logo {
-            font-weight: 600;
-            font-size: 1.2rem;
+        *,
+        *::before,
+        *::after {
+          box-sizing: border-box;
         }
 
-        .logo:hover {
-           color: white; 
+        svg {
+          fill: currentColor;
         }
 
-        .selected-world {
+        html {
+          color-scheme: var(--color-scheme);
+        }
+
+        header {
+            min-height: 3rem;
+        }
+
+        body {
+          margin: 0;
+          font-family: var(--font-family);
+          font-size: var(--fs-400);
+          line-height: 1.6;
+        }
+
+        footer {
             text-align: center;
         }
 
-        a {
-          color: inherit;
-          text-decoration: inherit; 
+        main {
+            min-height: 100vh;
+        }
+
+        .logo {
+            font-size: var(--fs-600);
+        }
+
+        .container {
+          width: 100%;
+          margin-inline: auto;
         }
 
         .link[href="{{.SelectedWorld}}"] {
-            color: #3cba9f;
+            color: var(--clr-primary);
         }
 
         .link[href="{{.SelectedWorld}}"]::after {
@@ -44,58 +80,8 @@
             color: white;
         }
 
-        ul {
-          list-style-type: none;
-          margin: 0;
-          padding: 0;
-        }
-
         .capitalize {
             text-transform: capitalize;
-        }
-
-        body {
-            line-height: 1.75em;
-            font-size: 16px;
-            background-color: #222;
-            color: #aaa;
-        }
-
-        header {
-            background-color: #255;
-            z-index: 50;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        }
-
-        header > div {
-            margin-inline: auto;
-            min-height: 4.5rem;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 5rem;
-        }
-
-        main {
-            padding-top: 5rem;
-            padding-bottom: 2rem;
-            min-height: 100vh;
-            margin-inline: auto;
-        }
-
-        footer {
-            min-height: 2rem;
-            width: 100%;
-            text-align: center;
-        }
-
-        .container {
-          width: 100%;
         }
 
         @media (min-width: 640px) {
@@ -128,43 +114,59 @@
           }
         }
 
-        .world-links {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            background-color: #222;
-            min-width: 12rem;
-        }
-
-        .dropdown {
-          position: relative;
-          display: inline-block;
-        }
-
-        .dropdown-content {
-          display: none;
-          position: absolute;
-          background-color: #222;
-          min-width: 160px;
-          box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-          padding: 1rem 1rem;
-          z-index: 1;
-        }
-
-        .dropdown:hover .dropdown-content {
-          display: block;
-        }
-
         .chart-container {
             height: 70vh;
         }
 
+        .apexcharts-menu {
+            color: black;
+        }
+
         .apexcharts-zoom-icon.apexcharts-selected svg {
-          fill: #3cba9f !important;
+          fill: var(--clr-primary) !important;
         }
 
         .apexcharts-pan-icon.apexcharts-selected svg {
-          stroke: #3cba9f !important;
+          stroke: var(--clr-primary) !important;
+        }
+
+        .apexcharts-tooltip {
+            background: white;
+            color: black;
+        }
+
+        .dropdown-container {
+            position: relative;
+            margin-inline: auto;
+        }
+
+        .dropdown-btn {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+            width: fit-content;
+            padding-inline: 0.2rem;
+            padding-block: 0.5rem;
+            cursor: pointer;
+        }
+
+        .dropdown-menu {
+            display: none;
+            flex-direction: column;
+            gap: 0.3rem;
+            padding-inline: 0.2rem;
+            position: absolute;
+            left: 0;
+            width: fit-content;
+            max-height: 30vh;
+            overflow-y: auto;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .dropdown-icon {
+            color: var(--clr-primary);
         }
     </style>
 </head>
@@ -172,30 +174,40 @@
     <header>
         <div class="container">
             <div><a href="/"><span class="logo">Margostat</span></a></div>
-
-            <div class="dropdown">
-              <span>Lista swiatow</span>
-              <div class="dropdown-content">
-                <ul class="world-links">
-                    {{range $world := .Worlds}}
-                    <li><a href="{{$world}}" class="link capitalize">{{$world}}</a></li>
-                    {{end}}
-                </ul>
-              </div>
-            </div>
         </div>
     </header>
+
     <main class="container">
         <section class='main-section'>
-            <h1 class="capitalize selected-world">{{.SelectedWorld}}</h1>
+            <div class="dropdown-container">
+                <div class="dropdown-btn capitalize" onclick="toggleDropdown()">
+                    <span>
+                        {{.SelectedWorld}}
+                    </span>
+                    <span class="dropdown-icon">
+                        &darr;
+                    </span>
+                </div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                    {{range $world := .Worlds}}
+                    <a href="{{$world}}" class="link capitalize">{{$world}}</a>
+                    {{end}}
+                </div>
+            </div>
 
             <div class='chart-container'>
                 <div id="timeline-chart"></div>
             </div>
         </section>
     </main>
+
     <footer>Margostat</footer>
 <script>
+      function toggleDropdown() {
+        const dropdownMenu = document.getElementById("dropdownMenu");
+        dropdownMenu.style.display = (dropdownMenu.style.display === "flex") ? "none" : "flex";
+      }
+
     const dateFormatter = new Intl.DateTimeFormat("pl-PL", {
         year: 'numeric',
         month: '2-digit',
