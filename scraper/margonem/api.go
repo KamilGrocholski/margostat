@@ -12,7 +12,14 @@ import (
 
 func CountMultipleWorldsInfoOnline() ([]database.CounterInsert, error) {
 	url := "https://www.margonem.pl/stats"
-	response, err := http.Get(url)
+	userAgent := "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0"
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("User-Agent", userAgent)
+	response, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
